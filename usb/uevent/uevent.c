@@ -14,6 +14,11 @@ static int fd = -1;
 
 void parse(const char *msg, struct uevent *event)
 {
+    event->action = "";
+    event->path   = "";
+    event->subsystem = "";
+    event->aoa_state = "";
+
     while (*msg) {
         if (!strncmp(msg, "ACTION=", 7)) {
             msg += 7;
@@ -25,7 +30,7 @@ void parse(const char *msg, struct uevent *event)
             msg += 10;
             event->subsystem = msg;
         } else if (!strncmp(msg, "AOA_STATE=", 10)) {
-            msg+=11;
+            msg+=10;
             event->aoa_state = msg;
         }
 

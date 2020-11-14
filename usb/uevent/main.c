@@ -3,6 +3,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <pthread.h>
 
 #include "uevent.h"
 
@@ -44,6 +47,38 @@ int do_umount(struct uevent *event)
     return umount(MOUNT_PATH);
 }
 
+#define PATH_AOA "/dev/aoa"
+#define BUF_SIZE  0x400
+
+volatile unsigned char aoa_ready = 0;
+void show(char *buf, int count)
+{
+    int i;
+    for (i = 0; i < count; i++)
+        printf("%d ", buf[i]);
+    printf("\n");
+}
+
+static void* aoa_read(void *args)
+{
+    char buf[BUF_SIZE] = {0};
+    int fd = open(PATH_AOA, O_RDWR);
+    if (fd < 0) {
+        perror("open");
+        return NULL;
+    }
+
+    while (aoa_ready) {
+        int count = read(fd, buf, sizeof(buf));
+        if (count > 0) {
+            printf("read data\n");
+            show(buf, count);
+        }
+    }
+
+    return NULL;
+}
+
 int main(int argc, char** argv)
 {
     int result = 0;
@@ -55,11 +90,9 @@ int main(int argc, char** argv)
         return -1;
     }
 
+    int afd = -1;
     while (1) {
         struct uevent event;
-        event.action = "";
-        event.path   = "";
-        event.aoa_state = "";
 
         result = uevent_next_event(buf, BUFLEN);
         if (result > 0) {
@@ -69,8 +102,12 @@ int main(int argc, char** argv)
             } else if (!strcmp(event.action, ACTION_REMOVE) && strstr(event.path, BLOCK_PATH)) {
                 do_umount(&event);
             } else if (!strcmp(event.aoa_state, "CONNECTED")) {
+                aoa_ready = 1;
+                pthread_t thread;
+                pthread_create(&thread, NULL, aoa_read, NULL);
                 printf("aoa connected\n");
             } else if (!strcmp(event.aoa_state, "DISCONNECTED")) {
+                aoa_ready = 0;
                 printf("aoa disconnected\n");
             }
         }
