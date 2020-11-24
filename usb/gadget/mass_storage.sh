@@ -2,7 +2,7 @@
 
 insmod /lib/modules/usb_f_mass_storage.ko
 usleep 100
-insmod /lib/modules/g_mass_storage.ko
+insmod /lib/modules/g_mass_storage.ko file=/dev/sda1 removable=1
 
 #delete all functions
 rm -rf /sys/kernel/config/usb_gadget/g1/functions/*
