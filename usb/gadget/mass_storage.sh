@@ -5,6 +5,7 @@ usleep 100
 insmod /lib/modules/g_mass_storage.ko file=/dev/sda1 removable=1
 
 #delete all functions
+rm -rf /sys/kernel/config/usb_gadget/g1/configs/b.1/mass_storage.gs0
 rm -rf /sys/kernel/config/usb_gadget/g1/functions/*
 
 #create mass_storage
@@ -14,8 +15,6 @@ mkdir /sys/kernel/config/usb_gadget/g1/functions/mass_storage.gs0
 echo "/dev/mmcblk1" >> /sys/kernel/config/usb_gadget/g1/functions/mass_storage.gs0/lun.0/file
 
 echo "mass_storage" >> /sys/kernel/config/usb_gadget/g1/configs/b.1/strings/0x409/configuration
-
-rm -rf /sys/kernel/config/usb_gadget/g1/configs/b.1/mass_storage.gs0
 
 ln -s /sys/kernel/config/usb_gadget/g1/functions/mass_storage.gs0 /sys/kernel/config/usb_gadget/g1/configs/b.1/
 
