@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
-#include<unistd.h>
+#include <unistd.h>
 #include <fcntl.h>
+#include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -10,19 +11,25 @@
 
 #include "TcpServer.h"
 
-TcpServer::TcpServer()
+TcpServer::TcpServer(int port)
+    :mSock(-1), mPort(port)
 {
-    mSock = -1;
+    pthread_mutex_init(&mLock, NULL);
 }
 
 TcpServer::~TcpServer()
 {
-    destroyServer();
+    pthread_mutex_destroy(&mLock);
 }
 
 void TcpServer::init()
 {
     createServer();
+}
+
+void TcpServer::exit()
+{
+    destroyServer();
 }
 
 int TcpServer::createServer()
@@ -64,4 +71,8 @@ int TcpServer::send(void *buf, size_t len)
 int TcpServer::recv(void *buf, size_t len)
 {
     return ::recv(mSock, buf, len, 0);
+}
+
+void TcpServer::onDataAvailable(int fd)
+{
 }

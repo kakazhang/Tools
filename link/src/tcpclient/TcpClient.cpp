@@ -3,6 +3,7 @@
 #include <strings.h>
 #include<unistd.h>
 #include <fcntl.h>
+#include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -11,19 +12,24 @@
 #include "TcpClient.h"
 
 TcpClient::TcpClient(const char *ip,int port)
-    :mIP(ip),mPort(port)
+    :mIP(ip),mPort(port),mSock(-1)
 {
-    mSock = -1;
+    pthread_mutex_init(&mLock, NULL);
 }
 
 TcpClient::~TcpClient()
 {
-
+    pthread_mutex_destroy(&mLock);
 }
 
 void TcpClient::init()
 {
     createClient();
+}
+
+void TcpClient::exit()
+{
+    destroyClient();
 }
 
 int TcpClient::createClient()
@@ -61,4 +67,8 @@ int TcpClient::send(void *buf, size_t len)
 int TcpClient::recv(void *buf, size_t len)
 {
     return ::recv(mSock, buf, len, 0);
+}
+
+void TcpClient::onDataAvailable(int fd)
+{
 }
