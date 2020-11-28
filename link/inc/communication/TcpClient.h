@@ -9,11 +9,14 @@ class TcpClient : public Entity {
         TcpClient(const char *ip,int port);
         virtual ~TcpClient();
         virtual void init();
-        virtual int send(void *buf, size_t len);
-        virtual int recv(void *buf, size_t len);
+        virtual int send(int fd, void *buf, size_t len);
+        virtual int recv(int fd, void *buf, size_t len);
         virtual void exit();
 
-        virtual void onDataAvailable(int fd);
+        virtual void handleTimeout();
+        virtual void handleException(int fd);
+
+        virtual int getFd() {return mSock;}
     private:
         int createClient();
         int destroyClient();

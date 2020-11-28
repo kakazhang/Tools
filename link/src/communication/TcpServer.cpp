@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <errno.h>
+#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include<netinet/in.h>
+#include <netinet/in.h>
 
 #include "TcpServer.h"
 
@@ -20,6 +21,7 @@ TcpServer::TcpServer(int port)
 TcpServer::~TcpServer()
 {
     pthread_mutex_destroy(&mLock);
+    exit();
 }
 
 void TcpServer::init()
@@ -38,7 +40,7 @@ int TcpServer::createServer()
     struct sockaddr_in addr;
 
     bzero(&addr, sizeof(struct sockaddr_in));
-    addr.sin_addr.s_addr = inet_addr(INADDR_ANY);
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
     addr.sin_family = AF_INET;
     addr.sin_port = htons(mPort);
 
@@ -63,16 +65,37 @@ int TcpServer::destroyServer()
         close(mSock);
 }
 
-int TcpServer::send(void *buf, size_t len)
+int TcpServer::send(int fd, void *buf, size_t len)
 {
-    return ::send(mSock, buf, len , 0);
+    int ret;
+
+    if (fd > 0) {
+        ret = ::send(fd, buf, len , 0);
+        if (ret < 0) {
+            printf("%s send failed:%s\n", __func__, strerror(errno));
+            handleException(fd);
+        }
+    }
+    return ret;
 }
 
-int TcpServer::recv(void *buf, size_t len)
+int TcpServer::recv(int fd, void *buf, size_t len)
 {
-    return ::recv(mSock, buf, len, 0);
+    int ret = ::recv(fd, buf, len, 0);
+    if (ret < 0) {
+        printf("%s send failed:%s\n", __func__, strerror(errno));
+        handleException(fd);
+    }
+
+    return ret;
 }
 
-void TcpServer::onDataAvailable(int fd)
+void TcpServer::handleTimeout()
 {
+    //do nothing
+}
+
+void TcpServer::handleException(int fd)
+{
+    close(fd);
 }

@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
-#include<unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <sys/types.h>
@@ -20,6 +21,7 @@ TcpClient::TcpClient(const char *ip,int port)
 TcpClient::~TcpClient()
 {
     pthread_mutex_destroy(&mLock);
+    exit();
 }
 
 void TcpClient::init()
@@ -48,6 +50,9 @@ int TcpClient::createClient()
         return mSock;
     }
 
+    int keepAlive = 1;
+    setsockopt(mSock, SOL_SOCKET, SO_KEEPALIVE, (void *)&keepAlive, sizeof(keepAlive));
+
     fcntl(mSock, F_SETFL, fcntl(mSock, F_GETFL, 0)|O_NONBLOCK);
     int connected = connect(mSock, (struct sockaddr *)&saddr, sizeof(struct sockaddr_in));
     return connected;
@@ -55,20 +60,45 @@ int TcpClient::createClient()
 
 int TcpClient::destroyClient()
 {
-    if (mSock > 0)
+    if (mSock > 0) {
         close(mSock);
+        mSock = -1;
+    }
 }
 
-int TcpClient::send(void *buf, size_t len)
+int TcpClient::send(int fd, void *buf, size_t len)
 {
-    return ::send(mSock, buf, len , 0);
+    int ret = -1;
+    if (fd > 0) {
+        ret =  ::send(fd, buf, len , 0);
+        if (ret < 0) {
+            printf("send failed:%s\n", strerror(errno));
+            handleException(fd);
+        }
+    }
+
+    return ret;
 }
 
-int TcpClient::recv(void *buf, size_t len)
+int TcpClient::recv(int fd, void *buf, size_t len)
 {
-    return ::recv(mSock, buf, len, 0);
+    int ret = ::recv(fd, buf, len, 0);
+    if (ret < 0) {
+        printf("send failed:%s\n", strerror(errno));
+        handleException(fd);
+    }
+
+    return ret;
 }
 
-void TcpClient::onDataAvailable(int fd)
+void TcpClient::handleTimeout()
 {
+    if (mSock < 0)
+        createClient();
+}
+
+void TcpClient::handleException(int fd)
+{
+    if (fd == mSock)
+        destroyClient();
 }
