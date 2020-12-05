@@ -26,11 +26,8 @@ void TcpClientLink::onDataAvailable(int fd)
 {
     char buf[128] = {0};
 
-    if (fd == 0) {
+    if (fd == -1) {
         mClient->handleTimeout();
-        mSock = mClient->getFd();
-        if (mSock > 0)
-            addFd(mSock);
         return;
     }
 

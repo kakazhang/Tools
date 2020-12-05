@@ -44,6 +44,7 @@ int Poll::addFd(int fd)
     struct epoll_event event;
     event.events = EPOLLIN;
     event.data.fd = fd;
+    printf("add fd:%d\n", fd);
     return epoll_ctl(eFd, EPOLL_CTL_ADD, fd, &event);
 }
 
@@ -83,7 +84,7 @@ void* Poll::entry(void *args)
             continue;
         } else if (nfds == 0) {
             printf("timeout\n");
-            poll->onDataAvailable(0);
+            poll->onDataAvailable(-1);
         } else {
             for (int n = 0; n < nfds; ++n) {
                 poll->onDataAvailable(events[n].data.fd);
