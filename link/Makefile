@@ -1,8 +1,8 @@
-CROSS_COMPILE 	?= arm-linux-gnueabihf-
-#CROSS_COMPILE 	?=
+#CROSS_COMPILE 	?= arm-linux-gnueabihf-
+CROSS_COMPILE 	?=
 TARGET		  	?= LINK
 
-CC 			:= $(CROSS_COMPILE)g++
+CC 				:= $(CROSS_COMPILE)g++
 
 INCDIRS 		:= 	inc/communication\
 					inc/poll\
@@ -10,6 +10,7 @@ INCDIRS 		:= 	inc/communication\
 					inc/link
 
 SRCDIRS			:= 	src\
+					src/common \
 					src/communication\
 					src/poll\
 					src/link

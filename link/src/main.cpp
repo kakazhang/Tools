@@ -6,6 +6,7 @@
 #include "Poll.h"
 #include "TcpClientLink.h"
 #include "TcpServerLink.h"
+#include "UartLink.h"
 
 #define FORMAT "Send from %s"
 
@@ -35,9 +36,9 @@ void usage()
 
 int main(int argc, char **argv)
 {
+#if 0
     if (argc < 4)
         usage();
-
     type = atoi(argv[1]);
 
     TcpAttr tcpAttr;
@@ -56,6 +57,21 @@ int main(int argc, char **argv)
 
     pthread_t t;
     pthread_create(&t, NULL, work, link);
+#endif
+    UartAttr uartAttr = {
+        .attr           = {
+            .type       = 2,
+            .timeout    = 1000,
+        },
+        .dev_path       = "/dev/ttyACM0",
+        .baud           = 115200,
+        .flow_ctrl      = 2,
+        .data_bits      = 8,
+        .stop_bits      = 1,
+        .parity         = 'N',
+    };
+
+    UartLink uart(&uartAttr);
 
     while (1)
         sleep(1);
