@@ -2,7 +2,8 @@
 
 rmmod 8189fs
 
-sleep 1
+killall hostapd
+
+killall udhcpd
 
 turn_on_wlan.sh &
-

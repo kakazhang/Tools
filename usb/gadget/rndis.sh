@@ -20,3 +20,5 @@ echo "rndis" >> /sys/kernel/config/usb_gadget/g1/configs/b.1/strings/0x409/confi
 echo 1 >> /sys/kernel/config/usb_gadget/g1/os_desc/use
 
 echo "ci_hdrc.0" >> UDC
+
+dnsmasq
